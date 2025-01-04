@@ -1,4 +1,4 @@
-package com.evanbuss;
+package com.evanbuss.Lox;
 
 public class Token {
     final TokenType type;

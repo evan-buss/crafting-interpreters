@@ -1,4 +1,4 @@
-package com.evanbuss;
+package com.evanbuss.Lox;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -35,7 +35,7 @@ public class Lox {
         BufferedReader reader = new BufferedReader(input);
 
         for (; ; ) {
-            System.out.println("> ");
+            System.out.print("> ");
             String line = reader.readLine();
             if (line == null) {
                 break;
@@ -48,9 +48,6 @@ public class Lox {
     private static void run(String source) {
         Scanner scanner = new Scanner(source);
         List<Token> tokens = scanner.scanTokens();
-
-        System.out.println("Lox.run");
-        System.out.println("source = " + source);
 
         for (Token token : tokens) {
             System.out.println("token = " + token);

@@ -1,21 +1,40 @@
-package com.evanbuss;
+package com.evanbuss.Lox;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-import static com.evanbuss.TokenType.*;
+import static com.evanbuss.Lox.TokenType.*;
 
 public class Scanner {
     private final String source;
     private final List<Token> tokens = new ArrayList<>();
 
+    private static final Map<String, TokenType> keywords = new HashMap<>();
+
+    static {
+        keywords.put("and", AND);
+        keywords.put("class", CLASS);
+        keywords.put("else", ELSE);
+        keywords.put("false", FALSE);
+        keywords.put("for", FOR);
+        keywords.put("fun", FUN);
+        keywords.put("if", IF);
+        keywords.put("nil", NIL);
+        keywords.put("or", OR);
+        keywords.put("print", PRINT);
+        keywords.put("return", RETURN);
+        keywords.put("super", SUPER);
+        keywords.put("this", THIS);
+        keywords.put("true", TRUE);
+        keywords.put("var", VAR);
+        keywords.put("while", WHILE);
+    }
+
     private int start = 0;
     private int current = 0;
     private int line = 1;
-
-    private boolean isAtEnd() {
-        return current >= source.length();
-    }
 
     public Scanner(String source) {
         this.source = source;
@@ -80,6 +99,8 @@ public class Scanner {
             case '/':
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd()) advance();
+                } else if (match('*')) {
+                    while (!isAtEnd() && peek() != '*' && !match('/')) advance();
                 } else {
                     addToken(SLASH);
                 }
@@ -96,9 +117,19 @@ public class Scanner {
                 line++;
                 break;
             default:
-                Lox.error(line, "Unexpected character.");
+                if (isDigit(c)) {
+                    number();
+                } else if (isAlpha(c)) {
+                    identifier();
+                } else {
+                    Lox.error(line, "Unexpected character.");
+                }
                 break;
         }
+    }
+
+    private boolean isAtEnd() {
+        return current >= source.length();
     }
 
     private char advance() {
@@ -108,6 +139,11 @@ public class Scanner {
 
     private char peek() {
         return source.charAt(current);
+    }
+
+    private char peekNext() {
+        if (current + 1 >= source.length()) return '\0';
+        return source.charAt(current + 1);
     }
 
     private boolean match(Character expected) {
@@ -141,5 +177,39 @@ public class Scanner {
         advance();
 
         addToken(STRING, source.substring(start + 1, current - 1));
+    }
+
+    private boolean isDigit(char c) {
+        return c >= '0' && c <= '9';
+    }
+
+    private boolean isAlpha(char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+    }
+
+    private boolean isAlphaNumeric(char c) {
+        return isAlpha(c) || isDigit(c);
+    }
+
+    private void number() {
+        while (isDigit(peek())) advance();
+
+        if (peek() == '.' && isDigit(peekNext())) {
+            do advance();
+            while (isDigit(peek()));
+        }
+
+        addToken(NUMBER, Double.parseDouble(source.substring(start, current)));
+    }
+
+    private void identifier() {
+        while (isAlphaNumeric(peek())) advance();
+
+        String text = source.substring(start, current);
+        TokenType tokenType = keywords.get(text);
+        if (tokenType == null) {
+            tokenType = IDENTIFIER;
+        }
+        addToken(tokenType);
     }
 }
