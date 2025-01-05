@@ -97,13 +97,16 @@ public class Scanner {
                 addToken(match('=') ? GREATER_EQUAL : GREATER);
                 break;
             case '/':
+                // Single line comments
                 if (match('/')) {
                     while (peek() != '\n' && !isAtEnd()) advance();
-                } else if (match('*')) {
-                    while (!isAtEnd() && peek() != '*' && !match('/')) advance();
+                } else if (match('*')) { // Comment blocks
+                    while (peek() != '*' && peekNext() != '/' && !isAtEnd()) advance();
+                    current += 2;
                 } else {
                     addToken(SLASH);
                 }
+                break;
             case '"':
                 string();
                 break;
@@ -129,7 +132,7 @@ public class Scanner {
     }
 
     private boolean isAtEnd() {
-        return current >= source.length();
+        return current >= source.length() - 1;
     }
 
     private char advance() {
